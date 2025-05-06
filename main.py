@@ -42,6 +42,7 @@ class ClickerGame(QWidget):
         self.shop_button = QPushButton(f"Shop ({self.multiplier_price})")
         self.shop_button.setObjectName("shop_button")
         self.shop_button.clicked.connect(self.buy_mult)
+
         layout.addWidget(self.shop_button)
         return layout
     def add_click(self):
