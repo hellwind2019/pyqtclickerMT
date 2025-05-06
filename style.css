@@ -1,0 +1,36 @@
+QWidget{
+    background-color: rgb(49, 49, 49);
+}
+QPushButton{
+    background-color: rgb(49, 49, 49);
+    color: rgb(255, 255, 255);
+    border: 1px solid rgb(255, 255, 255);
+    border-radius: 5px;
+    padding: 30px;
+}
+#shop_button{
+    background-color: greenyellow;
+    padding: 10px 25px;
+    color: black;
+    font-weight: 500;
+}
+#shop_button:hover{
+    background-color: rgb(255, 255, 255);
+    color: black;
+}
+#press_button:hover{
+    background-color: rgb(255, 255, 255);
+    color: black;
+}
+#header_widget{
+    background-color: red;
+    border-radius: 10px;
+}
+QLabel{
+    background-color: rgba(168, 168, 168, 0.384);
+    border-radius: 10px;
+    padding: 10px;
+    color: rgb(255, 255, 255);
+    font-size: 20px;
+    font-weight: 500;
+}
