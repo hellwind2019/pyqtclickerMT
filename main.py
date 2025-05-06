@@ -1,8 +1,8 @@
 import sys
 import random
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QVBoxLayout, QHBoxLayout
-from PyQt5.QtCore import QPropertyAnimation, QPoint, QEasingCurve, Qt, QTimer
-from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QVBoxLayout, QHBoxLayout, QSizePolicy
+from PyQt5.QtCore import QPropertyAnimation, QPoint, QEasingCurve, Qt, QTimer, QSize
+from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase, QImage
 
 
 class ClickerGame(QWidget):
@@ -21,13 +21,7 @@ class ClickerGame(QWidget):
         self.layout = QVBoxLayout()
         self.layout.setAlignment(Qt.AlignCenter)
         self.layout.addLayout(self.init_header_layout())
-
-        self.layout.addStretch(4)
-
-        self.pressButton = QPushButton("Click me!")
-        self.pressButton.setObjectName("press_button")
-        self.pressButton.clicked.connect(self.add_click)
-        self.layout.addWidget(self.pressButton)
+        self.layout.addLayout(self.init_main_layout())
 
 
         self.setLayout(self.layout)
@@ -61,6 +55,28 @@ class ClickerGame(QWidget):
             self.multiplier_label.setText(f"{self.multiplier}x")
             self.shop_button.setText(f"Shop ({self.multiplier_price})")
             self.score_label.setText(f"Score: {self.clicks}")
+    def init_main_layout(self):
+        main_layout = QVBoxLayout()
+        earth_button = QPushButton()
+        # earth_holder.setAlignment(Qt.AlignCenter)
+        earth_image = QIcon("earth_pixel.png")
+        earth_button.setIcon(earth_image)
+        earth_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        earth_button.setIconSize(QSize(300, 300))
+        earth_button.clicked.connect(lambda :self.animate_button(earth_button))
+        main_layout.addWidget(earth_button)
+        return main_layout
+    @staticmethod
+    def animate_button(button):
+        anim = QPropertyAnimation(button, b"iconSize")
+        anim.setDuration(100)
+        anim.setStartValue(QSize(250, 250))
+        anim.setKeyValueAt(0.5, QSize(235, 235))
+        anim.setEndValue(QSize(250, 250))
+        anim.start()
+        # prevent garbage collection:
+        button.anim = anim  # keep reference alive
+
 
 app = QApplication(sys.argv)
 font_id = QFontDatabase.addApplicationFont("CalSans-Regular.ttf")
