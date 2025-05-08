@@ -14,6 +14,9 @@ QPushButton{
     color: black;
     font-weight: 500;
 }
+#leaderboard_button{
+    font-size: 14px;
+}
 #shop_button:hover{
     background-color: rgb(255, 255, 255);
     color: black;
