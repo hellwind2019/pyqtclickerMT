@@ -59,6 +59,16 @@ def register_user(username, password):
         conn.commit()
         user_id = cursor.lastrowid
     except sqlite3.IntegrityError:
-        user_id = None  # username вже зайнятий
+        user_id = None
     conn.close()
     return user_id
+
+def verify_user(username, password):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    user = cursor.execute(
+        'SELECT id, username FROM users WHERE username = ? AND password = ?',
+        (username, password)
+    ).fetchone()
+    conn.close()
+    return dict(user) if user else None

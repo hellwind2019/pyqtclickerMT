@@ -4,7 +4,7 @@ from PyQt5.QtGui import QIcon
 
 from game_logic import GameLogic
 from constants import *
-from dialogs import PurchaseDialog, RegistrationDialog
+from dialogs import PurchaseDialog, RegistrationDialog, LoginDialog
 from planets import Planet
 
 class ClickerGame(QWidget):
@@ -44,7 +44,7 @@ class ClickerGame(QWidget):
         self.leaderboard_button = QPushButton("Leaderboard")
         self.leaderboard_button.clicked.connect(self.open_leaderboard)
 
-        self.register_button = QPushButton("Register")
+        self.register_button = QPushButton("Log in")
         self.register_button.clicked.connect(self.open_registration)
 
         for widget in (self.score_label, self.multiplier_label,
@@ -54,7 +54,7 @@ class ClickerGame(QWidget):
         return layout
 
     def open_registration(self):
-        dialog = RegistrationDialog(self)
+        dialog = LoginDialog(self)
         dialog.exec_()
 
     def build_main(self):
