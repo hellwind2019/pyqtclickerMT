@@ -3,7 +3,7 @@ import requests
 class PurchaseDialog(QDialog):
     def __init__(self, parent, description, price, affordable, on_confirm, width, heigth):
         super().__init__(parent)
-        self.setWindowTitle("Підтвердження покупки")
+        self.setWindowTitle("Purchase Confirmation")
         self.setFixedSize(width//2, heigth//2)
         self.setModal(True)
 
@@ -35,6 +35,7 @@ class PurchaseDialog(QDialog):
 class LoginDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.logged_in_username = None
         self.setWindowTitle("Log in")
         self.setModal(True)
         self.init_ui()
@@ -79,28 +80,30 @@ class LoginDialog(QDialog):
         password = self.password_input.text()
 
         if not username or not password:
-            QMessageBox.warning(self, "Помилка", "Заповніть всі поля!")
+            QMessageBox.warning(self, "Error", "Please fill all fields!")
             return
-
+    
         try:
             response = requests.post(
                 "http://localhost:8000/register",
                 json={"username": username, "password": password}
             )
-
+    
             if response.status_code == 200:
-                QMessageBox.information(self, "Успіх", "Реєстрація успішна!")
+                QMessageBox.information(self, "Success", "Registration successful!")
+                self.logged_in_username = username
+    
                 self.accept()
             else:
                 QMessageBox.warning(
-                    self, "Помилка",
-                    "Користувач з таким ім'ям вже існує!"
+                    self, "Error",
+                    "User with this username already exists!"
                 )
-
+    
         except requests.RequestException:
             QMessageBox.critical(
-                self, "Помилка",
-                "Помилка з'єднання з сервером!"
+                self, "Error",
+                "Connection to server failed!"
             )
     def login(self):
         username = self.username_input.text()
@@ -118,6 +121,7 @@ class LoginDialog(QDialog):
 
             if response.status_code == 200:
                 QMessageBox.information(self, "Success", "Login successful")
+                self.logged_in_username = username
                 self.accept()
             else:
                 QMessageBox.warning(
@@ -127,8 +131,8 @@ class LoginDialog(QDialog):
 
         except requests.RequestException:
             QMessageBox.critical(
-                self, "Помилка",
-                "Помилка з'єднання з сервером!"
+                self, "Error",
+                "Connection to server failed!"
             )
 
 
@@ -146,15 +150,15 @@ class RegistrationDialog(QDialog):
 
         # Username field
         username_layout = QHBoxLayout()
-        username_label = QLabel("Логін:")
+        username_label = QLabel("Username:")
         self.username_input = QLineEdit()
         username_layout.addWidget(username_label)
         username_layout.addWidget(self.username_input)
         layout.addLayout(username_layout)
-
+        
         # Password field
         password_layout = QHBoxLayout()
-        password_label = QLabel("Пароль:")
+        password_label = QLabel("Password:")
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.Password)
         password_layout.addWidget(password_label)
@@ -178,7 +182,7 @@ class RegistrationDialog(QDialog):
         password = self.password_input.text()
 
         if not username or not password:
-            QMessageBox.warning(self, "Помилка", "Заповніть всі поля!")
+            QMessageBox.warning(self, "Error", "Please fill all fields!")
             return
 
         try:
@@ -188,16 +192,16 @@ class RegistrationDialog(QDialog):
             )
 
             if response.status_code == 200:
-                QMessageBox.information(self, "Успіх", "Реєстрація успішна!")
+                QMessageBox.information(self, "Success", "Registration successful!")
                 self.accept()
             else:
                 QMessageBox.warning(
-                    self, "Помилка",
-                    "Користувач з таким ім'ям вже існує!"
+                    self, "Error",
+                    "User with this username already exists!"
                 )
 
         except requests.RequestException:
             QMessageBox.critical(
-                self, "Помилка",
-                "Помилка з'єднання з сервером!"
+                self, "Error",
+                "Connection to server failed!"
             )
