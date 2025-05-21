@@ -1,9 +1,8 @@
-from operator import truediv
-
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy
 from PyQt5.QtCore import Qt, QPropertyAnimation, QSize, QTimer
 from PyQt5.QtGui import QIcon
 
+from game_logic import GameLogic
 from constants import *
 from dialogs import PurchaseDialog
 from planets import Planet
@@ -11,11 +10,7 @@ from planets import Planet
 class ClickerGame(QWidget):
     def __init__(self):
         super().__init__()
-
-        self.clicks = 0
-        self.multiplier = 1
-        self.multiplier_price = 10
-        self.planet = Planet.MERCURY
+        self.logic = GameLogic()
 
         self.setWindowTitle(WINDOW_TITLE)
         self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -28,9 +23,8 @@ class ClickerGame(QWidget):
 
     def init_timer(self):
         self.auto_click_timer = QTimer()
-        self.auto_click_timer.timeout.connect(self.auto_click)
+        self.auto_click_timer.timeout.connect(self.on_auto_click)
         self.auto_click_timer.start(1000)
-
 
     def init_ui(self):
         self.layout = QVBoxLayout()
@@ -41,10 +35,6 @@ class ClickerGame(QWidget):
         self.layout.addLayout(self.build_main())
         self.layout.addLayout(self.build_footer())
 
-    def auto_click(self):
-        self.clicks += self.multiplier
-        self.update_ui()
-
     def build_header(self):
         layout = QHBoxLayout()
         self.score_label = self.create_label("Score: 0", 130)
@@ -52,7 +42,6 @@ class ClickerGame(QWidget):
         self.score_per_second_label = self.create_label("1/s")
 
         self.leaderboard_button = QPushButton("Leaderboard")
-        self.leaderboard_button.setObjectName("leaderboard_button")
         self.leaderboard_button.clicked.connect(self.open_leaderboard)
 
         for widget in (self.score_label, self.multiplier_label, self.score_per_second_label, self.leaderboard_button):
@@ -66,70 +55,61 @@ class ClickerGame(QWidget):
         self.click_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.click_button.setIconSize(QSize(300, 300))
         self.click_button.clicked.connect(lambda: self.animate_button(self.click_button))
-        self.click_button.clicked.connect(self.add_click)
+        self.click_button.clicked.connect(self.on_click)
         layout.addWidget(self.click_button)
         return layout
 
     def build_footer(self):
         layout = QHBoxLayout()
-        self.mult_button = QPushButton ("Mult" )
+        self.mult_button = QPushButton("Mult")
         self.boost_button = QPushButton("Boost")
-        self.auto_button = QPushButton ("Auto" )
+        self.auto_button = QPushButton("Auto")
 
-        self.mult_button.clicked.connect(self.buy_multiplier)
-        self.boost_button.clicked.connect(self.but_boost)
-        self.auto_button.clicked.connect(self.buy_autoclick)
+        self.mult_button.clicked.connect(self.on_buy_multiplier)
+        self.boost_button.clicked.connect(self.on_boost)
+        self.auto_button.clicked.connect(self.on_auto)
+
         for button in (self.mult_button, self.boost_button, self.auto_button):
             layout.addWidget(button)
-
         return layout
 
-    def add_click(self):
-        self.clicks += 1 * self.multiplier
+    def on_click(self):
+        self.logic.add_click()
         self.update_ui()
 
+    def on_auto_click(self):
+        self.logic.auto_click()
+        self.update_ui()
 
-    def buy_multiplier(self):
+    def on_buy_multiplier(self):
         self.buy_upgrade(
-            f"Gain more score per click\n {self.multiplier} → {self.multiplier + 1}",
-            self.multiplier_price,
-            lambda: self._upgrade_multiplier()
+            f"Gain more score per click\n {self.logic.multiplier} → {self.logic.multiplier + 1}",
+            self.logic.multiplier_price,
+            self.logic.buy_multiplier
         )
 
-    def _upgrade_multiplier(self):
-        self.multiplier += 1
-        self.multiplier_price *= 2
+    def on_boost(self):
+        self.logic.multiplier *= 10
+        QTimer.singleShot(5000, self.remove_boost)
 
-    def buy_boost(self):
-      ...
+    def remove_boost(self):
+        self.logic.multiplier = max(1, self.logic.multiplier // 10)
+        self.update_ui()
 
-
-
-    def buy_autoclick(self):
+    def on_auto(self):
+        # TODO: Implement autoclick upgrade
         ...
 
-    def buy_upgrade(self, description: str, price: int, on_confirm: callable):
-        affordable = self.is_affordable(price)
-
+    def buy_upgrade(self, description: str, price: int, upgrade_func: callable):
         def confirm_purchase():
-            if affordable:
-                on_confirm()
-                self.clicks -= price
+            if upgrade_func():
                 self.update_ui()
 
-        PurchaseDialog(
-            self,
-            description,
-            price,
-            affordable,
-            confirm_purchase
-        ).exec_()
-
+        PurchaseDialog(self, description, price, self.logic.is_affordable(price), confirm_purchase).exec_()
 
     def update_ui(self):
-        self.score_label.setText(f"Score: {self.clicks}")
-        self.multiplier_label.setText(f"{self.multiplier}x")
-
+        self.score_label.setText(f"Score: {self.logic.clicks}")
+        self.multiplier_label.setText(f"{self.logic.multiplier}x")
 
     def open_leaderboard(self):
         ...
@@ -145,15 +125,9 @@ class ClickerGame(QWidget):
         button.anim = anim
 
     @staticmethod
-    def create_label(text, width=None) -> QLabel:
+    def create_label(text, width=None):
         label = QLabel(text)
         label.setAlignment(Qt.AlignCenter)
         if width:
             label.setFixedWidth(width)
         return label
-
-
-    def is_affordable(self, price:int) -> bool:
-        if self.clicks >= price:
-            return True
-        return False
