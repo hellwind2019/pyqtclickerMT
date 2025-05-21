@@ -8,18 +8,23 @@ from dialogs import PurchaseDialog
 from planets import Planet
 
 class ClickerGame(QWidget):
-    def __init__(self):
+    def __init__(self, width, height):
         super().__init__()
         self.logic = GameLogic()
-
+        self.window_width = width
+        self.window_height = height
         self.setWindowTitle(WINDOW_TITLE)
-        self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.setFixedSize(self.window_width, self.window_height)
 
         with open(STYLE_FILE, "r") as f:
             self.setStyleSheet(f.read())
 
         self.init_ui()
         self.init_timer()
+
+        self.boost_timer = QTimer()
+        self.boost_timer.setSingleShot(True)
+        self.boost_timer.timeout.connect(self.remove_boost)
 
     def init_timer(self):
         self.auto_click_timer = QTimer()
@@ -89,11 +94,16 @@ class ClickerGame(QWidget):
         )
 
     def on_boost(self):
-        self.logic.multiplier *= 10
-        QTimer.singleShot(5000, self.remove_boost)
+        if self.logic.buy_boost_upgrade():
+            self.update_ui()
+        else:
+            if not self.logic.boost_active:
+                self.logic.activate_boost()
+                self.boost_timer.start(5000)
+                self.update_ui()
 
     def remove_boost(self):
-        self.logic.multiplier = max(1, self.logic.multiplier // 10)
+        self.logic.boost_active = False
         self.update_ui()
 
     def on_auto(self):
@@ -105,11 +115,12 @@ class ClickerGame(QWidget):
             if upgrade_func():
                 self.update_ui()
 
-        PurchaseDialog(self, description, price, self.logic.is_affordable(price), confirm_purchase).exec_()
+        PurchaseDialog(self, description, price, self.logic.is_affordable(price), confirm_purchase, self.window_width, self.window_height).exec_()
 
     def update_ui(self):
         self.score_label.setText(f"Score: {self.logic.clicks}")
         self.multiplier_label.setText(f"{self.logic.multiplier}x")
+        self.boost_button.setText(f"Boost ({self.logic.boost_multiplier}x) - {self.logic.boost_price}")
 
     def open_leaderboard(self):
         ...

@@ -1,10 +1,10 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
 
 class PurchaseDialog(QDialog):
-    def __init__(self, parent, description, price, affordable, on_confirm):
+    def __init__(self, parent, description, price, affordable, on_confirm, width, heigth):
         super().__init__(parent)
         self.setWindowTitle("Підтвердження покупки")
-        self.setFixedSize(300, 300)
+        self.setFixedSize(width//2, heigth//2)
         self.setModal(True)
 
         layout = QVBoxLayout()
