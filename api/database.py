@@ -16,7 +16,15 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
             password TEXT,
-            score INTEGER DEFAULT 0
+            score INTEGER DEFAULT 0,
+            multiplier INTEGER DEFAULT 1,
+            multiplier_price INTEGER DEFAULT 10,
+            boost_multiplier INTEGER DEFAULT 1,
+            boost_price INTEGER DEFAULT 50,
+            boost_active BOOLEAN DEFAULT 0,
+            auto_click INTEGER DEFAULT 1,
+            auto_click_price INTEGER DEFAULT 100
+
         )
     ''')
     cursor.execute('''
@@ -72,3 +80,44 @@ def verify_user(username, password):
     ).fetchone()
     conn.close()
     return dict(user) if user else None
+
+def get_user_state(user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        user = cursor.execute('''
+            SELECT id, username, score, multiplier, multiplier_price,
+                   boost_multiplier, boost_price, boost_active,
+                   auto_click, auto_click_price
+            FROM users 
+            WHERE id = ?
+        ''', (user_id,)).fetchone()
+        return dict(user) if user else None
+    finally:
+        conn.close()
+
+def update_user_state(user_id, score, multiplier, multiplier_price,
+                     boost_multiplier, boost_price, boost_active,
+                     auto_click, auto_click_price):
+    """Update all user state fields at once"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            UPDATE users 
+            SET score = ?,
+                multiplier = ?,
+                multiplier_price = ?,
+                boost_multiplier = ?,
+                boost_price = ?,
+                boost_active = ?,
+                auto_click = ?,
+                auto_click_price = ?
+            WHERE id = ?
+        ''', (score, multiplier, multiplier_price,
+              boost_multiplier, boost_price, boost_active,
+              auto_click, auto_click_price, user_id))
+        conn.commit()
+        return cursor.rowcount > 0
+    finally:
+        conn.close()

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QDialog
 from PyQt5.QtCore import Qt, QPropertyAnimation, QSize, QTimer
 from PyQt5.QtGui import QIcon
 
@@ -10,9 +10,20 @@ from planets import Planet
 class ClickerGame(QWidget):
     def __init__(self, width, height):
         super().__init__()
+        self.click_button = None
+        self.leaderboard_button = None
+        self.score_per_second_label = None
+        self.layout = None
+        self.multiplier_label = None
+        self.auto_click_timer = None
+        self.score_label = None
         self.logic = GameLogic()
         self.window_width = width
         self.window_height = height
+        self.current_username = None
+        self.username_label = None
+        self.login_button = None
+
         self.setWindowTitle(WINDOW_TITLE)
         self.setFixedSize(self.window_width, self.window_height)
 
@@ -46,21 +57,40 @@ class ClickerGame(QWidget):
         self.multiplier_label = self.create_label("1x")
         self.score_per_second_label = self.create_label("1/s")
 
-        self.leaderboard_button = QPushButton("Leaderboard")
-        self.leaderboard_button.clicked.connect(self.open_leaderboard)
+        self.login_button = QPushButton("Log In")
+        self.login_button.clicked.connect(self.open_login)
 
-        self.register_button = QPushButton("Log in")
-        self.register_button.clicked.connect(self.open_registration)
+
+        # Create username label (initially hidden)
+        self.username_label = QLabel()
+        self.username_label.hide()
+
 
         for widget in (self.score_label, self.multiplier_label,
-                       self.score_per_second_label, self.leaderboard_button,
-                       self.register_button):
-            layout.addWidget(widget)
+                           self.score_per_second_label, self.leaderboard_button,
+                           self.login_button, self.username_label):
+                layout.addWidget(widget)
         return layout
 
-    def open_registration(self):
+
+    def open_login(self):
         dialog = LoginDialog(self)
-        dialog.exec_()
+        if dialog.exec_() == QDialog.Accepted:
+            # Get the username from the dialog
+            if hasattr(dialog, 'logged_in_username'):
+                self.current_username = dialog.logged_in_username
+                self.update_login_state()
+
+    def update_login_state(self):
+        if self.current_username:
+            # Hide login button and show username
+            self.login_button.hide()
+            self.username_label.setText(f"Welcome, {self.current_username}!")
+            self.username_label.show()
+        else:
+            # Show login button and hide username
+            self.login_button.show()
+            self.username_label.hide()
 
     def build_main(self):
         layout = QVBoxLayout()
