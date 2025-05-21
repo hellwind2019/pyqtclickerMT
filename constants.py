@@ -1,6 +1,6 @@
 WINDOW_TITLE = "PyQt5 Clicker"
-WINDOW_WIDTH = 500
-WINDOW_HEIGHT = 700
+WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 800
 
 EARTH_IMAGE = "assets/earth_pixel.png"
 STYLE_FILE = "assets/style.css"
