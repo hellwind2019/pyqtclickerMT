@@ -1,5 +1,7 @@
+from operator import truediv
+
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy
-from PyQt5.QtCore import Qt, QPropertyAnimation, QSize
+from PyQt5.QtCore import Qt, QPropertyAnimation, QSize, QTimer
 from PyQt5.QtGui import QIcon
 
 from constants import *
@@ -22,6 +24,13 @@ class ClickerGame(QWidget):
             self.setStyleSheet(f.read())
 
         self.init_ui()
+        self.init_timer()
+
+    def init_timer(self):
+        self.auto_click_timer = QTimer()
+        self.auto_click_timer.timeout.connect(self.auto_click)
+        self.auto_click_timer.start(1000)
+
 
     def init_ui(self):
         self.layout = QVBoxLayout()
@@ -31,6 +40,10 @@ class ClickerGame(QWidget):
         self.layout.addLayout(self.build_header())
         self.layout.addLayout(self.build_main())
         self.layout.addLayout(self.build_footer())
+
+    def auto_click(self):
+        self.clicks += self.multiplier
+        self.update_ui()
 
     def build_header(self):
         layout = QHBoxLayout()
@@ -59,10 +72,13 @@ class ClickerGame(QWidget):
 
     def build_footer(self):
         layout = QHBoxLayout()
-        self.mult_button = QPushButton("Mult")
+        self.mult_button = QPushButton ("Mult" )
         self.boost_button = QPushButton("Boost")
-        self.auto_button = QPushButton("Auto")
+        self.auto_button = QPushButton ("Auto" )
 
+        self.mult_button.clicked.connect(self.buy_multiplier)
+        self.boost_button.clicked.connect(self.but_boost)
+        self.auto_button.clicked.connect(self.buy_autoclick)
         for button in (self.mult_button, self.boost_button, self.auto_button):
             layout.addWidget(button)
 
@@ -72,13 +88,51 @@ class ClickerGame(QWidget):
         self.clicks += 1 * self.multiplier
         self.update_ui()
 
+
+    def buy_multiplier(self):
+        self.buy_upgrade(
+            f"Gain more score per click\n {self.multiplier} → {self.multiplier + 1}",
+            self.multiplier_price,
+            lambda: self._upgrade_multiplier()
+        )
+
+    def _upgrade_multiplier(self):
+        self.multiplier += 1
+        self.multiplier_price *= 2
+
+    def buy_boost(self):
+      ...
+
+
+
+    def buy_autoclick(self):
+        ...
+
+    def buy_upgrade(self, description: str, price: int, on_confirm: callable):
+        affordable = self.is_affordable(price)
+
+        def confirm_purchase():
+            if affordable:
+                on_confirm()
+                self.clicks -= price
+                self.update_ui()
+
+        PurchaseDialog(
+            self,
+            description,
+            price,
+            affordable,
+            confirm_purchase
+        ).exec_()
+
+
     def update_ui(self):
         self.score_label.setText(f"Score: {self.clicks}")
         self.multiplier_label.setText(f"{self.multiplier}x")
-        self.leaderboard_button.setText(f"Shop ({self.multiplier_price})")
+
 
     def open_leaderboard(self):
-        PurchaseDialog(self, "Description", 1000, lambda: print("Upgrade")).exec_()
+        ...
 
     @staticmethod
     def animate_button(button):
@@ -91,9 +145,15 @@ class ClickerGame(QWidget):
         button.anim = anim
 
     @staticmethod
-    def create_label(text, width=None):
+    def create_label(text, width=None) -> QLabel:
         label = QLabel(text)
         label.setAlignment(Qt.AlignCenter)
         if width:
             label.setFixedWidth(width)
         return label
+
+
+    def is_affordable(self, price:int) -> bool:
+        if self.clicks >= price:
+            return True
+        return False
