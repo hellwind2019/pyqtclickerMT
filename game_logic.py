@@ -41,3 +41,6 @@ class GameLogic:
     def activate_boost(self, duration_ms=5000):
         if not self.boost_active:
             self.boost_active = True
+
+    def deactivate_boost(self):
+        self.boost_active = False
