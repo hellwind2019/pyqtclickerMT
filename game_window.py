@@ -103,14 +103,25 @@ class ClickerGame(QWidget):
         )
 
     def on_boost(self):
-        if self.logic.buy_boost_upgrade():
-            self.update_ui()
-        else:
-            if not self.logic.boost_active:
-                self.logic.activate_boost()
-                self.boost_timer.start(5000)
-                self.update_ui()
+        # if self.logic.buy_boost_upgrade():
+        #     self.update_ui()
+        # else:
+        #     if not self.logic.boost_active:
+        #         self.logic.activate_boost()
+        #         self.boost_timer.start(5000)
+        #         self.update_ui()
+        self.buy_upgrade(
+            f"Activate Boost ({self.logic.boost_multiplier}x for 5s)\nNext boost +5x",
+            self.logic.boost_price,
+            self.buy_and_activate_boost
+        )
 
+    def buy_and_activate_boost(self):
+        if self.logic.buy_boost_upgrade():
+            self.logic.activate_boost()
+            QTimer.singleShot(5000, self.logic.deactivate_boost)
+            return True
+        return False
     def remove_boost(self):
         self.logic.boost_active = False
         self.update_ui()
@@ -128,8 +139,10 @@ class ClickerGame(QWidget):
 
     def update_ui(self):
         self.score_label.setText(f"Score: {self.logic.clicks}")
-        self.multiplier_label.setText(f"{self.logic.multiplier}x")
-        self.boost_button.setText(f"Boost ({self.logic.boost_multiplier}x) - {self.logic.boost_price}")
+        if self.logic.boost_active:
+            self.multiplier_label.setText(f"{self.logic.multiplier}x × {self.logic.boost_multiplier} BOOST!")
+        else:
+            self.multiplier_label.setText(f"{self.logic.multiplier}x")
 
     def open_leaderboard(self):
         ...
